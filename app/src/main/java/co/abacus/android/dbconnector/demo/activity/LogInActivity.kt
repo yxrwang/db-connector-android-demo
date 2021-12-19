@@ -11,6 +11,7 @@ import co.abacus.android.dbconnector.demo.application.AbacusDemoApplication
 import co.abacus.android.dbconnector.demo.util.stdDispatchers
 import co.abacus.dbconnector.AuthService
 import co.abacus.dbconnector.domain.input.CompanyAccountSignUpInput
+import co.abacus.dbconnector.domain.throwable.CustomerAlreadyRegistered
 import io.reactivex.disposables.Disposable
 
 class LogInActivity : AppCompatActivity() {
@@ -76,8 +77,16 @@ class LogInActivity : AppCompatActivity() {
                     Toast.makeText(this@LogInActivity, "Sign Up success", Toast.LENGTH_LONG).show()
                 },
                 { err ->
-                    Toast.makeText(this@LogInActivity, err.localizedMessage, Toast.LENGTH_LONG)
-                        .show()
+                    when (err) {
+                        is CustomerAlreadyRegistered -> {
+                            Toast.makeText(this@LogInActivity, "Already registered", Toast.LENGTH_LONG)
+                                .show()
+                        }
+                        else -> {
+                            Toast.makeText(this@LogInActivity, err.localizedMessage, Toast.LENGTH_LONG)
+                                .show()
+                        }
+                    }
                 }
             )
     }
