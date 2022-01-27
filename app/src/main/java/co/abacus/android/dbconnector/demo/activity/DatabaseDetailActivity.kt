@@ -15,6 +15,8 @@ import co.abacus.android.dbconnector.demo.model.DisplayItem
 import co.abacus.android.dbconnector.demo.util.stdDispatchers
 import co.abacus.dbconnector.*
 import co.abacus.dbconnector.data.*
+import co.abacus.dbconnector.domain.throwable.AbacusCloudException
+import io.reactivex.Single
 import io.reactivex.disposables.Disposable
 import java.math.BigDecimal
 import java.util.*
@@ -28,6 +30,8 @@ class DatabaseDetailActivity : AppCompatActivity() {
     lateinit var categoriesRepo: CategoriesRepository
     lateinit var reportsRepo: ReportsRepository
     lateinit var invoicesRepo: InvoicesRepository
+    lateinit var modifierRepo: ModifiersRepository
+    lateinit var modifierValueRepository: ModifierValueRepository
 
     private var sub: Disposable? = null
 
@@ -40,6 +44,8 @@ class DatabaseDetailActivity : AppCompatActivity() {
             val auth = getAuthService()
             reportsRepo = auth.obtainReportsRepoFor(auth.getCurrUser()!!)
             invoicesRepo = auth.obtainInvoicesRepoFor(auth.getCurrUser()!!)
+            modifierRepo = getModifiersRepo()
+            modifierValueRepository = getModifierValueRepo()
         }
         binding = ActivityDatabaseDetailBinding.inflate(layoutInflater)
         setContentView(binding.root)
@@ -224,5 +230,18 @@ class DatabaseDetailActivity : AppCompatActivity() {
         sub?.dispose()
         sub = null
         super.onStop()
+    }
+
+    private fun addModifierValue(modifierValue: ModifierValue, modifier: Modifier) {
+        sub = modifierValueRepository.add(modifierValue).flatMap { mv ->
+            mv.id?.let {
+                modifierRepo.update(modifier.apply { mv.id?.let { it1 -> values?.add(it1) } }).andThen(Single.just(mv))
+            } ?: throw AbacusCloudException("Modifier value is not created.")
+
+        }.stdDispatchers().subscribe({
+            
+        } , { e ->
+            showError(e.localizedMessage)
+        })
     }
 }

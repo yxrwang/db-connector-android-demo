@@ -17,4 +17,5 @@ class AbacusDemoApplication : Application() {
     fun getProductsRepo(): ProductsRepository { return factory.productsRepo }
     fun getModifiersRepo(): ModifiersRepository { return factory.modifiersRepo }
     fun getImageRepo(): ImageRepository { return factory.imageRepository }
+    fun getModifierValueRepo(): ModifierValueRepository {return factory.modifierValueRepo}
 }
