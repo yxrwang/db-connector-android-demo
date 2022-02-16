@@ -87,8 +87,8 @@ class DatabaseDetailActivity : AppCompatActivity() {
                 true
             }
             R.id.option_add_invoice -> {
-                val total = BigDecimal.valueOf(Random().nextInt(400).toDouble())
-                val invoice = makeInvoice(total, BigDecimal.valueOf(1.0))
+                val total = Random().nextInt(400).toDouble()
+                val invoice = makeInvoice(total, 1.0)
 
                 invoicesRepo.add(invoice)
                     .stdDispatchers()
@@ -99,9 +99,9 @@ class DatabaseDetailActivity : AppCompatActivity() {
                                 showError("invoiceId was not generated")
                             } else {
                                 val items = listOf(
-                                    makeItem(invoiceId, total.divide(BigDecimal.valueOf(2))),
-                                    makeItem(invoiceId, total.divide(BigDecimal.valueOf(2)))
-                                )
+                                    makeItem(invoiceId, total/2),
+                                    makeItem(invoiceId, total/2))
+
                                 val s =  invoicesRepo.addItems(items)
                                     .stdDispatchers()
                                     .subscribe(
@@ -121,7 +121,7 @@ class DatabaseDetailActivity : AppCompatActivity() {
         }
     }
 
-    private fun makeInvoice(total: BigDecimal, tax: BigDecimal): Invoice =
+    private fun makeInvoice(total: Double, tax: Double): Invoice =
         Invoice(
             createdOn = Date(),
             uniqueCode = UUID.randomUUID(),
@@ -136,7 +136,7 @@ class DatabaseDetailActivity : AppCompatActivity() {
             platform = "0",
             currency = "AUD",
             taxRate = 0.0,
-            totalExTax = total.minus(tax),
+            totalExTax = (total - tax),
             taxAmount = tax,
             total = total,
             shippingAddress = PostalAddress(
@@ -148,11 +148,11 @@ class DatabaseDetailActivity : AppCompatActivity() {
             )
         )
 
-    private fun makeItem(invoiceId: String, amount: BigDecimal): InvoiceItem =
+    private fun makeItem(invoiceId: String, amount: Double): InvoiceItem =
         InvoiceItem(
             invoiceId = invoiceId,
             totalExTax = amount,
-            tax = BigDecimal.valueOf(0.0),
+            tax = 0.0,
             createdOn = Date(),
             itemId = "2",
             itemName = "Item2",
@@ -230,18 +230,5 @@ class DatabaseDetailActivity : AppCompatActivity() {
         sub?.dispose()
         sub = null
         super.onStop()
-    }
-
-    private fun addModifierValue(modifierValue: ModifierValue, modifier: Modifier) {
-        sub = modifierValueRepository.add(modifierValue).flatMap { mv ->
-            mv.id?.let {
-                modifierRepo.update(modifier.apply { mv.id?.let { it1 -> values?.add(it1) } }).andThen(Single.just(mv))
-            } ?: throw AbacusCloudException("Modifier value is not created.")
-
-        }.stdDispatchers().subscribe({
-            
-        } , { e ->
-            showError(e.localizedMessage)
-        })
     }
 }
